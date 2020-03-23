@@ -1,0 +1,4 @@
+#Carpetas
+_pycache_/*
+venv/*
+.idea/*
