@@ -1,49 +1,35 @@
 from Component_manager import Component_manager
 from Transistor_manager import transistor
-from Values_constructor import Values_constructor
 
-class Amplifier:
-    def __init__(self):
-        self.Resistors = {}
+
+class AmplifierEC:
+    def __init__(self, model):
+        self.VCC_nominal = [3, 5, 9, 12, 18, 24]
         self.VT = 0.026
-        self.tmp = 0
-    def stage_EC_build(self, Parameters):
-        self.Transistor = transistor()
-        self.Values_constructor = Values_constructor()
-        self.HFE = self.Transistor.get_values(Parameters['Model'],"HFE.MAX")
-        self.hfe = self.Transistor.get_values(Parameters['Model'],"hfe.MAX")
-        self.Re = 0.1*Parameters['RL']
-        self.RB = self.Re*0.1*self.hfe
-        self.ICQ = Values_constructor.ICQ(Parameters)
-        self.hib = self.VT/self.ICQ
-        self.Ren = Values_constructor.Ren_EC(self.RB,self.hib*self.hfe,self.hfe,self.Re)
-        self.tmp = Values_constructor.AV_EC(Parameters, self.hib)
-        self.AV = self.tmp['AV']
-        if Parameters['Mode'] == 'R/E':
-            self.Re1= self.tmp['Re1']
-            self.Re1 = self.tmp['Re2']
-        if Parameters['Rs'] != 0:
-            self.Ren = Parameters['Rs'] + self.Ren
-        return self.ICQ
-    def stage_BC_build(self):
-        return 'jejej hola'
+        self.index = 0
+        self.T = transistor()
+        self.Values_model_transistor = self.T.get_values(model)
+        self.parameters = {}
+    def stage(self, RL, AV):
+        self.parameters['RL'] = RL
+        self.parameters['hfe_MID'] = self.Values_model_transistor['hfe.MAX']*0.5
+        self.parameters['ICQ'] = self.Values_model_transistor['IC.Stable']
+        self.parameters['Hib'] = self.VT/self.parameters['ICQ']
+        self.parameters['Re1'] = self.parameters['RL']*0.5/AV - self.parameters['Hib']
+        self.parameters['VCC'] = self.VCC_selection()
+        self.parameters['Re2'] = self.parameters['VCC']/self.parameters['ICQ'] - self.parameters['RL']*1.5
+        self.parameters['Re'] = self.parameters['Re2'] + self.parameters['Re1']
+        self.parameters['RB'] = self.parameters['Re']*0.1*self.parameters['hfe_MID']
+        self.parameters['IB'] = self.parameters['ICQ']/self.parameters['hfe_MID']
+        self.parameters['VBB'] = self.parameters['IB']*(self.parameters['RB'] + (self.parameters['hfe_MID'] + 1)*self.parameters['Re']) + 0.7
+        self.parameters['R1'] = int(self.parameters['VCC']*self.parameters['RB']/self.parameters['VBB'])
+        self.parameters['R2'] = int(self.parameters['VCC']*self.parameters['RB']/(self.parameters['VCC']-self.parameters['VBB']))
+        self.parameters['Stable_status'] = self.parameters['Re1'] >= self.parameters['Hib']*10
+        return self.parameters
 
-    def stage_CC_build(self):
-        return 'jejej hola'
-
-A1 = Amplifier()
-Parameters = {
-    'RL': 1000,
-    'VCC': 12,
-    'Model': '2n3904',
-    'Rs': 0,
-    'Mode': 'nd'
-}
-print(A1.stage_EC_build(Parameters))
-
-
-
-
-
-
+    def VCC_selection(self):
+        self.VCC_Minimun = self.parameters['ICQ'] * (1.5 * self.parameters['RL'] + self.parameters['Re1'])
+        for self.index in range(len(self.VCC_nominal)):
+            if self.VCC_Minimun < self.VCC_nominal[self.index]:
+                return self.VCC_nominal[self.index]
 
