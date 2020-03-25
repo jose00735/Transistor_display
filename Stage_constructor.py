@@ -1,4 +1,4 @@
-from Transistor_manager import transistor
+from Transistor_manager import TransistorManager
 
 
 class StageEC:
@@ -6,8 +6,8 @@ class StageEC:
         self.VCC_nominal = [3, 5, 9, 12, 18, 24]
         self.VT = 0.026
         self.index = 0
-        self.T = transistor()
-        self.Values_model_transistor = self.T.get_values(model)
+        self.T = TransistorManager(model)
+        self.Values_model_transistor = self.T.get_transitor_specs()
         self.parameters = {}
     def build_stage_RS(self, RL, RS, AV, VCC):
         self.parameters['RS'] = RS

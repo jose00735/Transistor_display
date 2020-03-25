@@ -1,20 +1,69 @@
-import pandas as pd
+from Stack_manager import stack
 
-class transistor:
-    def __init__(self):
-        self.count = 0
-        self.tdb = pd.read_csv('Transistor_db.csv')
-        self.specs_dictionary = {}
 
-    def get_values(self, model):
-        for self.count in range(len(self.tdb.columns)):
-            if self.count >= 2:
-                self.specs_dictionary[self.tdb.columns[self.count]] = float(
-                    self.tdb[self.tdb.columns[self.count]][self.tdb['Modelo'] == model])
+class TransistorManager:
+    def __init__(self, model):
+        with open('Transistors_db.txt', 'r') as self.transistors_db:
+            self.transistors_content = self.transistors_db.readlines()
+            self.specs = stack()
+            self.models_db = stack()
+            self.model_specs = stack()
+            self.tmp = ''
+            self.tmp_index = 0
+            self.model_location = 0
+            self.shape = [0, range(len(self.transistors_content))]
+            self.transistor_specs = {}
+            # aqui se hace un stack con modelos de transistores
+            for self.index in self.shape[1]:
+                while self.transistors_content[self.index][self.tmp_index] != ',':
+                    self.tmp += self.transistors_content[self.index][self.tmp_index]
+                    self.tmp_index += 1
+                self.models_db.push(self.tmp)
+                self.tmp = ''
+                self.tmp_index = 0
+            self.models_db = self.models_db.get_stack()
+            # aqui se busca si hay coincidencia con el transistor ingresado
+            for self.tmp_index in range(len(self.models_db)):
+                if self.models_db[self.tmp_index] == model:
+                    self.model_location = self.tmp_index
+            if self.model_location != 0:
+                # Aqui se crea un array con los specs
+                for self.index in range(len(self.transistors_content[0]) - 1):
+                    if self.transistors_content[0][self.index] != ',':
+                        self.tmp += self.transistors_content[0][self.index]
+                        self.shape[0] += 1
+                    else:
+                        if self.tmp != '':
+                            self.specs.push(self.tmp)
+                            self.tmp = ''
+                        self.shape[0] += 1
+                self.specs.push(self.tmp)
+                self.specs = self.specs.get_stack()
+                self.tmp = ''
+                # aqui se toman todos los datos de nuestro transistor
+                for self.index in range(len(self.transistors_content[self.model_location]) - 1):
+                    if self.transistors_content[self.model_location][self.index] != ',':
+                        self.tmp += self.transistors_content[self.model_location][self.index]
+                    else:
+                        if self.tmp != '':
+                            self.model_specs.push(self.tmp)
+                            self.tmp = ''
+                self.model_specs.push(self.tmp)
+                self.model_specs = self.model_specs.get_stack()
+                self.tmp = ''
             else:
-                self.specs_dictionary[self.tdb.columns[self.count]] = self.tdb[self.tdb.columns[self.count]][
-                    self.tdb['Modelo'] == model]
-        return self.specs_dictionary
+                self.Error = 'Transistor no esta en base de datos'
 
-    def show_avaliable_transistors_of(self, Type):
-        return self.tdb[['Modelo', 'Darlington']][self.tdb['Type'] == Type]
+    def get_transitor_specs(self):
+        if self.model_location != 0:
+            for self.tmp_index in range(len(self.model_specs)):
+                if self.tmp_index > 1:
+                     self.transistor_specs[self.specs[self.tmp_index]] = float(self.model_specs[self.tmp_index])
+                else:
+                    self.transistor_specs[self.specs[self.tmp_index]] = self.model_specs[self.tmp_index]
+            return self.transistor_specs
+        else:
+            return self.Error
+    def show_transitors_avaliables(self):
+        return self.models_db
+
