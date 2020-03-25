@@ -1,35 +1,46 @@
 from Stage_constructor import StageEC
 from Component_manager import Component_manager
 
+
 class Amplifier:
     def __init__(self, RL, RS, AV):
         self.RL = RL
         self.RS = RS
         self.AV = AV
-        self.s1 = 0
-        self.s2 = 0
-        self.s3 = 0
-        self.total_parameters = []
+        self.VCC = 0
+        self.RL_tmp = 0
+        self.s = 0
+        self.Parameters_container = {}
+        self.name = ''
+    def ec(self, model):
+        self.AV_divided = pow(self.AV, 1/(len(model)))
+        for self.index in range(len(model)):
+            if self.index == 0:
+                self.s = StageEC(model[self.index])
+                self.s.build_stage(self.RL, self.AV_divided, 0)
+                self.name = f'{model[self.index]}:{self.index}'
+                self.Parameters_container[self.name] = self.s.get_parameters()
+                self.VCC = self.s.get_parameters()['VCC']
+                self.RL_tmp = self.s.get_parameters()['Ren']
+            elif self.index == len(model) - 1:
+                self.s = StageEC(model[self.index])
+                self.s.build_stage_RS(self.RL, self.RS,self.AV_divided, self.VCC)
+                self.name = f'{model[self.index]}:{self.index}'
+                self.Parameters_container[self.name] = self.s.get_parameters()
+            else:
+                self.s = StageEC(model[self.index])
+                self.s.build_stage(self.RL_tmp, self.AV_divided, self.VCC)
+                self.name = f'{model[self.index]}:{self.index}'
+                self.Parameters_container[self.name] = self.s.get_parameters()
+                self.RL_tmp = self.s.get_parameters()['Ren']
+        return self.Parameters_container
 
-    def ec1(self, model):
-        self.s1 = StageEC(model)
-        self.s1.build_stage_RS(self.RL, self.RS, self.AV, 0)
-        return self.s1.get_parameters()
+A = Amplifier(5000,50,10000)
+model=['bc547b','2n3904','bc547b','2n3904','bc547b','2n3904','bc547b','2n3904','bc547b','2n3904']
+Amplifier_parameters = A.ec(model)
 
-    def ec2(self, model):
-        self.AV_divided = pow(self.AV,1/2)
-        self.s1 = StageEC(model[0])
-        self.s2 = StageEC(model[1])
-        self.s1.build_stage(self.RL, self.AV_divided, 0)
-        self.s2.build_stage_RS(int(self.s1.get_parameters()['Ren']), self.RS, self.AV_divided, self.s1.get_parameters()['VCC'])
-        print(self.s1.get_parameters())
-        print(self.s2.get_parameters())
-
-
-A = Amplifier(5000,50,50)
-model=['2n3904','2n3904']
-print(A.ec2(model))
-
+for index in Amplifier_parameters:
+    print(Amplifier_parameters[index])
 
 
 
