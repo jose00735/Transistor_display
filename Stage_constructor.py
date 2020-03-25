@@ -9,19 +9,24 @@ class StageEC:
         self.T = transistor()
         self.Values_model_transistor = self.T.get_values(model)
         self.parameters = {}
-    def stage_RS(self, RL, RS, AV):
+    def build_stage_RS(self, RL, RS, AV, VCC):
         self.parameters['RS'] = RS
-        return self.stage(RL,AV)
-    def stage(self, RL, AV):
+        return self.build_stage(RL, AV, VCC)
+    def build_stage(self, RL, AV, VCC):
         self.parameters['RL'] = RL
         self.parameters['hfe_MID'] = self.Values_model_transistor['hfe.MAX']*0.5
-        self.parameters['ICQ'] = self.Values_model_transistor['IC.Stable']
+        if VCC == 0:
+             self.parameters['ICQ'] = self.Values_model_transistor['IC.Stable']
+        else:
+             self.parameters['ICQ'] = VCC/(1.5*RL)*0.9
+             self.parameters['VCC'] = VCC
         self.parameters['Hib'] = self.VT/self.parameters['ICQ']
         self.parameters['Re1'] = self.parameters['RL']*0.5/AV - self.parameters['Hib']
-        self.parameters['VCC'] = self.vcc_selection()
+        if VCC == 0:
+            self.parameters['VCC'] = self.vcc_selection()
         self.parameters['Re2'] = self.parameters['VCC']/self.parameters['ICQ'] - self.parameters['RL']*1.5
         self.parameters['Re'] = self.parameters['Re2'] + self.parameters['Re1']
-        self.parameters['RB'] = self.parameters['Re']*0.1*self.parameters['hfe_MID']
+        self.parameters['RB'] = self.parameters['Re']*0.02*self.parameters['hfe_MID']
         self.parameters['IB'] = self.parameters['ICQ']/self.parameters['hfe_MID']
         self.parameters['VBB'] = self.parameters['IB']*(self.parameters['RB'] + (self.parameters['hfe_MID'] + 1)*self.parameters['Re']) + 0.7
         self.parameters['R1'] = self.parameters['VCC']*self.parameters['RB']/self.parameters['VBB']
