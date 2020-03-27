@@ -93,5 +93,7 @@ class Amplifier:
 A = Amplifier(10000, 50, 20, 1000)
 model = ['ec:2n3904', 'ec:2n3904', 'cc:tip31c', 'cc:bc547b']
 A_up_power = A.Power_amplifier(model, True)
-Amplifier_parameters = A_up_power(8)
-Component_manager.show_all_comercials(Amplifier_parameters)
+Amplifier_parameters = A_up_power(5)
+Component_manager.To_comercial_parameters(Amplifier_parameters)
+for index in Amplifier_parameters:
+    print(Amplifier_parameters[index])

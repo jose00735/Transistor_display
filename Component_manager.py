@@ -6,7 +6,7 @@ class Component_manager:
                                     2.7, 3.3, 3.9, 4.7, 5.1,
                                     5.6, 6.8, 8.2, 10]
         self.Comercial_Capacitors = [1, 1.2, 2.2, 3.3,
-                                     4.7, 5.6, 6.8, 8.2]
+                                     4.7, 5.6, 6.8, 8.2, 10]
         self.index = 0
         self.Component_stack = stack()
         self.Current_Component = c
@@ -53,12 +53,8 @@ class Component_manager:
         self.Component_container = stack()
         while self.tmp >= 1:
            self.Component_values = self.heavier_values_Component(self.tmp)
-           if self.Comercial_comparation(self.Component_value, type) != False:
-                self.Component_container.push(self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp)))
-                self.tmp = self.tmp - self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp))
-           else:
-               self.Component_container.push(self.Component_value)
-               self.Component_container.normalize(self.normalization_value)
+           self.Component_container.push(self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp)))
+           self.tmp = self.tmp - self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp))
         if type.lower() == 'c':
             self.Component_container.normalize(self.normalization_value)
 
@@ -78,16 +74,15 @@ class Component_manager:
             self.Component_tmp/=10
         return self.Component_tmp
 
-    def Comercial_comparation(self,C, type):
+    def Comercial_comparation(self, C, type):
         if type.lower() == 'r':
             self.vector_component = self.Comercial_Resistors
         elif type.lower() == 'c':
             self.vector_component = self.Comercial_Capacitors
-        for self.index in range(len(self.vector_component)):
-            if C >= self.vector_component[self.index]:
-                return self.vector_component[self.index - 1]
-            else:
-                return False
+        self.index = 0
+        while(C >= self.vector_component[self.index]):
+            self.index+=1
+        return self.vector_component[self.index - 1]
 
     def get_exp(self, number):
         self.number = number
@@ -101,12 +96,12 @@ class Component_manager:
     def show_comercials(self):
         return self.Component_container.get_stack()
 
-def show_all_comercials(Parameters):
+def To_comercial_parameters(Parameters):
     for index in Parameters:
         for index2 in Parameters[index]:
             if index2[0] == 'R':
                 c = Component_manager(Parameters[index][index2], 'r')
-                print(c.show_comercials())
+                Parameters[index][index2] = c.show_comercials()
             elif index2[0] == 'C':
                 c = Component_manager(Parameters[index][index2], 'c')
-                #print(c.show_comercials())
+                Parameters[index][index2] = c.show_comercials()
