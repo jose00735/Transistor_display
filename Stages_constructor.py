@@ -1,5 +1,5 @@
 from Stage_constructor import Stage
-from Component_manager import Component_manager
+import Component_manager
 from Stack_manager import stack
 
 
@@ -88,14 +88,10 @@ class Amplifier:
             return cc_power_up
         else:
             return self.Parameters_container
-    def get_comercial_values(self):
-        self.Components = Component_manager()
-        for
+
 
 A = Amplifier(10000, 50, 20, 1000)
 model = ['ec:2n3904', 'ec:2n3904', 'cc:tip31c', 'cc:bc547b']
 A_up_power = A.Power_amplifier(model, True)
 Amplifier_parameters = A_up_power(8)
-
-for index in Amplifier_parameters:
-    print(Amplifier_parameters[index])
+Component_manager.show_all_comercials(Amplifier_parameters)

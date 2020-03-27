@@ -53,8 +53,12 @@ class Component_manager:
         self.Component_container = stack()
         while self.tmp >= 1:
            self.Component_values = self.heavier_values_Component(self.tmp)
-           self.Component_container.push(self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp)))
-           self.tmp = self.tmp - self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp))
+           if self.Comercial_comparation(self.Component_value, type) != False:
+                self.Component_container.push(self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp)))
+                self.tmp = self.tmp - self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp))
+           else:
+               self.Component_container.push(self.Component_value)
+               self.Component_container.normalize(self.normalization_value)
         if type.lower() == 'c':
             self.Component_container.normalize(self.normalization_value)
 
@@ -79,10 +83,11 @@ class Component_manager:
             self.vector_component = self.Comercial_Resistors
         elif type.lower() == 'c':
             self.vector_component = self.Comercial_Capacitors
-        self.index = 0
-        while(C >= self.vector_component[self.index]):
-            self.index+=1
-        return self.vector_component[self.index - 1]
+        for self.index in range(len(self.vector_component)):
+            if C >= self.vector_component[self.index]:
+                return self.vector_component[self.index - 1]
+            else:
+                return False
 
     def get_exp(self, number):
         self.number = number
@@ -96,4 +101,12 @@ class Component_manager:
     def show_comercials(self):
         return self.Component_container.get_stack()
 
-
+def show_all_comercials(Parameters):
+    for index in Parameters:
+        for index2 in Parameters[index]:
+            if index2[0] == 'R':
+                c = Component_manager(Parameters[index][index2], 'r')
+                print(c.show_comercials())
+            elif index2[0] == 'C':
+                c = Component_manager(Parameters[index][index2], 'c')
+                #print(c.show_comercials())
