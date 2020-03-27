@@ -60,7 +60,7 @@ class Amplifier:
                 stage1 = Stage(self.models_CC.get_stack()[0])
                 stage2 = Stage(self.models_CC.get_stack()[1])
                 hfe = stage1.Values_model_transistor['hfe.MAX']*stage2.Values_model_transistor['hfe.MAX']*0.8
-                if stage1.Values_model_transistor['hfe.MAX'] > stage2.Values_model_transistor['hfe.MAX']:
+                if stage1.Values_model_transistor['IC.Stable'] > stage2.Values_model_transistor['IC.Stable']:
                     ic_stable = stage1.Values_model_transistor['IC.Stable']
                     self.stage = stage1
                 else:
@@ -84,14 +84,16 @@ class Amplifier:
             else:
                 raise AssertionError(
                     f'el {self.models_CC.get_stack()} no tiene hfe suficiente para la RL = {self.RL} con un diseño estable, se sugiere usar darlington')
-
         if PowerUp:
             return cc_power_up
         else:
             return self.Parameters_container
+    def get_comercial_values(self):
+        self.Components = Component_manager()
+        for
 
-A = Amplifier(800, 50, 20, 1000)
-model = ['ec:2n3904', 'ec:2n3904', 'cc:2n3904']
+A = Amplifier(10000, 50, 20, 1000)
+model = ['ec:2n3904', 'ec:2n3904', 'cc:tip31c', 'cc:bc547b']
 A_up_power = A.Power_amplifier(model, True)
 Amplifier_parameters = A_up_power(8)
 

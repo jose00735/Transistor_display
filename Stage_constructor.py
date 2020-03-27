@@ -28,9 +28,10 @@ class Stage:
             self.parameters['RB'] = Ren*(self.parameters['Hie']+self.parameters['hfe']*RL*0.5)/((self.parameters['Hie']+self.parameters['hfe']*RL*0.5)-Ren)
             self.parameters['VBB'] = self.parameters['ICQ']/self.parameters['hfe']*(self.parameters['RB']+(self.parameters['hfe']+1)*self.parameters['Re']) + self.parameters['VBE']
             if self.parameters['VBB'] > VCC:
-                while self.parameters['VBB'] > VCC:
+                for self.index in range(len(self.VCC_nominal)):
                     self.parameters['VCC'] = self.VCC_nominal[self.index]
-                    self.index+=1
+                if self.parameters['VBB'] > VCC:
+                    raise AssertionError('Valor de Ren no apropiado, intente con un transistor con mayor hfe')
             self.parameters['R1'] = self.parameters['RB']*VCC/self.parameters['VBB']
             self.parameters['R2'] = self.parameters['RB']*VCC/(VCC - self.parameters['VBB'])
             self.parameters['C1'] = 10 / (2 * self.pi * fc * RL)
