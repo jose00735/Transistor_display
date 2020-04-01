@@ -3,7 +3,7 @@ import Component_manager
 from Transistor_manager import TransistorManager
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QLineEdit, QLabel, QHBoxLayout, QPushButton, QGroupBox, QWidget, QDialog, QPlainTextEdit
 from PyQt5.QtWidgets import QListWidgetItem, QListWidget, QMessageBox
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 import sys
 
 
@@ -87,21 +87,6 @@ class Parameters(QDialog):
         else:
             QMessageBox.about(self, "Error RS", "Valor RS invalido o no ingresado")
 
-    def test_syntax(self, value):
-        dot = 0
-        mul = 0
-        for index in range(len(value)):
-            if value[index].lower() in "0123456789.km":
-                if value[index] == '.':
-                    dot += 1
-                elif value[index].lower() in 'km':
-                    mul += 1
-                if mul > 1 or dot > 1:
-                    return False
-            else:
-                return False
-        return True
-
     def to_float(self, value):
         tmp = ''
         mul = 0
@@ -180,10 +165,17 @@ class MainWindow(QWidget):
             if message == QMessageBox.Yes:
                 values = A_up_power(50)
                 Component_manager.To_comercial_parameters(values)
-                self.Display.setPlainText(str(values))
+                output = ''
+                for index in values:
+                    output += f'\n\n{index}\n{values[index]}'
+                self.Display.setPlainText(str(output))
             else:
                 values = A_up_power
-                self.Display.setPlainText(str(values))
+                Component_manager.To_comercial_parameters(values)
+                output = ''
+                for index in values:
+                    output += f'\n\n{index}\n{values[index]}'
+                self.Display.setPlainText(str(output))
             self.btn.setText("Select transistors for the amplifier")
             self.state = 0
 
@@ -279,12 +271,33 @@ class Transistors(QWidget):
         self.reset()
         self.transistor_names = []
 
+class RL_CC(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.top = 400
+        self.left = 300
+        self.height = 200
+        self.width = 200
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.setWindowIcon(QIcon("Transistor.png"))
+        self.setWindowTitle("Eleccion de RL de la etapa de corriente")
+        self.initWindow()
 
-'''''
-A = Amplifier(RL, RS, AV, F)
-model = ['ec:bc547b', 'ec:2n3904', 'cc:tip31c', 'cc:bc547b']
-A_up_power = A.Power_amplifier(model, True)
-'''''
+    def initWindow(self):
+        hbox = QHBoxLayout()
+        btn = QPushButton("Aceptar")
+        btn.clicked.connect()
+        self.input = QLineEdit()
+        hbox.addWidget(self.input)
+        hbox.addWidget(btn)
+
+    def btn_clicked(self):
+        if len(self.input.text()) < 3):
+            for 
+
+
+        else:
+            QMessageBox.about(self, "Error", "Valor irreal")
 
 
 if __name__ == "__main__":
