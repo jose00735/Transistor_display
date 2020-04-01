@@ -24,20 +24,28 @@ class Parameters(QDialog):
         RS_Panel = QGroupBox("Introduzca RS")
         RL_Panel = QGroupBox("Introduzca RL")
         AV_Panel = QGroupBox("Introduzca AV")
+        self.RL_CC_Panel = QGroupBox("Introduzca RL de etapa de corriente")
         F_Panel = QGroupBox("Introduzca F")
 
         hbox_RS = QHBoxLayout()
         hbox_RL = QHBoxLayout()
         hbox_AV = QHBoxLayout()
         hbox_F = QHBoxLayout()
+        hbox_RL_CC = QHBoxLayout()
 
-        MainParametersInput = QVBoxLayout()
+        self.MainParametersInput = QVBoxLayout()
 
         self.RS_label = QLabel("RS")
         self.RS_textedit = QLineEdit()
         hbox_RS.addWidget(self.RS_label)
         hbox_RS.addWidget(self.RS_textedit)
         RS_Panel.setLayout(hbox_RS)
+
+        self.RL_CC_label = QLabel("RL CC")
+        self.RL_CC_textedit = QLineEdit()
+        hbox_RL_CC.addWidget(self.RL_CC_label)
+        hbox_RL_CC.addWidget(self.RL_CC_textedit)
+        self.RL_CC_Panel.setLayout(hbox_RL_CC)
 
         self.RL_label = QLabel("RL")
         self.RL_textedit = QLineEdit()
@@ -57,16 +65,20 @@ class Parameters(QDialog):
         hbox_F.addWidget(self.F_textedit)
         F_Panel.setLayout(hbox_F)
 
-        btn_Introducir_Datos = QPushButton("Aceptar")
-        btn_Introducir_Datos.clicked.connect(self.btn_accept)
+        self.btn_Introducir_Datos = QPushButton("Aceptar")
+        self.btn_Introducir_Datos.clicked.connect(self.btn_accept)
 
-        MainParametersInput.addWidget(RS_Panel)
-        MainParametersInput.addWidget(RL_Panel)
-        MainParametersInput.addWidget(AV_Panel)
-        MainParametersInput.addWidget(F_Panel)
-        MainParametersInput.addWidget(btn_Introducir_Datos)
+        self.MainParametersInput.addWidget(RS_Panel)
+        self.MainParametersInput.addWidget(RL_Panel)
+        self.MainParametersInput.addWidget(AV_Panel)
+        self.MainParametersInput.addWidget(F_Panel)
+    def CC(self, Condition):
+        self.CC_condition = Condition
+        if self.CC_condition:
+            self.MainParametersInput.addWidget(self.RL_CC_Panel)
+        self.MainParametersInput.addWidget(self.btn_Introducir_Datos)
+        self.setLayout(self.MainParametersInput)
 
-        self.setLayout(MainParametersInput)
 
     def btn_accept(self):
         if self.RS_textedit.text() != '' and self.test_syntax(self.RS_textedit.text()):
@@ -77,7 +89,14 @@ class Parameters(QDialog):
                         self.parameters['RL'] = self.to_float(self.RL_textedit.text())
                         self.parameters['AV'] = self.to_float(self.AV_textedit.text())
                         self.parameters['F'] = self.to_float(self.F_textedit.text())
-                        self.close()
+                        if self.CC_condition:
+                            if self.RL_CC_textedit.text() != '' and self.test_syntax(self.RL_CC_textedit.text()):
+                                self.parameters['RL_CC'] = self.to_float(self.RL_CC_textedit.text())
+                                self.close()
+                            else:
+                                QMessageBox.about(self, "Error RL_CC", "Valor RL_CC invalido o no ingresado")
+                        else:
+                            self.close()
                     else:
                         QMessageBox.about(self, "Error F ", "Valor F invalido o no ingresado")
                 else:
@@ -86,6 +105,21 @@ class Parameters(QDialog):
                 QMessageBox.about(self, "Error RL", "Valor RL invalido o no ingresado")
         else:
             QMessageBox.about(self, "Error RS", "Valor RS invalido o no ingresado")
+
+    def test_syntax(self, value):
+        dot = 0
+        mul = 0
+        for index in range(len(value)):
+            if value[index].lower() in "0123456789.km":
+                if value[index] == '.':
+                    dot += 1
+                elif value[index].lower() in 'km':
+                    mul += 1
+                if mul > 1 or dot > 1:
+                    return False
+            else:
+                return False
+        return True
 
     def to_float(self, value):
         tmp = ''
@@ -153,29 +187,29 @@ class MainWindow(QWidget):
             self.Transistor_UI.show()
             self.state += 1
         elif self.state == 1:
+            if self.Transistor_UI.CC_amount > 0:
+                self.Parameters_UI.CC(True)
+                self.Parameters_UI.show()
+            else:
+                self.Parameters_UI.CC(False)
+                self.Parameters_UI.show()
             self.btn.setText("Show Configuration")
-            self.Parameters_UI.show()
             self.state += 1
         elif self.state == 2:
-            message = QMessageBox.question(self, "Etapa de corriente", "Quiere agregar la etapa de corriente?",
-                                 QMessageBox.Yes | QMessageBox.No)
             A = Amplifier(self.Parameters_UI.parameters['RL'], self.Parameters_UI.parameters['RS'], self.Parameters_UI.parameters['AV'],self.Parameters_UI.parameters['F'])
             model = self.Transistor_UI.get_names()
-            A_up_power = A.Power_amplifier(model, message == QMessageBox.Yes)
-            if message == QMessageBox.Yes:
-                values = A_up_power(50)
+            A = A.Power_amplifier(model, True)
+            tmp = ''
+            if self.Transistor_UI.CC_amount > 0:
+                values = A(self.Parameters_UI.parameters['RL_CC'])
                 Component_manager.To_comercial_parameters(values)
-                output = ''
-                for index in values:
-                    output += f'\n\n{index}\n{values[index]}'
-                self.Display.setPlainText(str(output))
             else:
-                values = A_up_power
+                values = A
                 Component_manager.To_comercial_parameters(values)
-                output = ''
-                for index in values:
-                    output += f'\n\n{index}\n{values[index]}'
-                self.Display.setPlainText(str(output))
+            for index in values:
+                tmp += f'\n\n{index}\n{values[index]}'
+            self.Display.setPlainText(tmp)
+
             self.btn.setText("Select transistors for the amplifier")
             self.state = 0
 
@@ -187,6 +221,7 @@ class Transistors(QWidget):
         self.Transistor_EC = QListWidget()
         self.Transistor_List = QListWidget()
 
+        self.CC_amount = 0
         self.transistor_names = []
 
         self.transistor_models_avaliables = TransistorManager('show')
@@ -249,6 +284,7 @@ class Transistors(QWidget):
             while self.Transistor_CC.item(index) != None:
                 tmp = self.Transistor_CC.item(index).text()
                 self.transistor_names.append(f'cc:{tmp}')
+                self.CC_amount += 1
                 index += 1
             self.close()
 
@@ -264,41 +300,13 @@ class Transistors(QWidget):
             tmp = self.Transistor_CC.takeItem(0)
             del tmp
             index += 1
+
     def get_names(self):
         return self.transistor_names
 
     def clear(self):
         self.reset()
         self.transistor_names = []
-
-class RL_CC(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.top = 400
-        self.left = 300
-        self.height = 200
-        self.width = 200
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        self.setWindowIcon(QIcon("Transistor.png"))
-        self.setWindowTitle("Eleccion de RL de la etapa de corriente")
-        self.initWindow()
-
-    def initWindow(self):
-        hbox = QHBoxLayout()
-        btn = QPushButton("Aceptar")
-        btn.clicked.connect()
-        self.input = QLineEdit()
-        hbox.addWidget(self.input)
-        hbox.addWidget(btn)
-
-    def btn_clicked(self):
-        if len(self.input.text()) < 3):
-            for 
-
-
-        else:
-            QMessageBox.about(self, "Error", "Valor irreal")
-
 
 if __name__ == "__main__":
     App = QApplication(sys.argv)
