@@ -15,51 +15,56 @@ class Component_manager:
         self.multiplier = 0
         self.Error_Component_vector = False
         self.Component_value = c
+        self.Component = 0
         if isinstance(self.Component_value, str):
-            while self.index < len(self.Current_Component) and self.dot_amount < 2 and self.multiplier_amount < 2:
-                self.Component = self.Current_Component[self.index]
-                if self.Component in "1234567890.":
-                    if self.Component == '.':
-                        self.dot_amount += 1
-                    self.Component_stack.push(self.Component)
-                elif self.Component.lower() in "kmun":
-                    self.multiplier = self.Component.lower()
-                    self.multiplier_amount += 1
-                else:
-                    self.Error_Component_vector = True
-                self.index += 1
-            if self.dot_amount > 1 or self.multiplier_amount > 1 or self.Error_Component_vector == True:
-                self.Component_stack.Empty()
-                self.Error_Component_vector = True
-                raise AssertionError('Cantidad de puntos o de multiplicadores incorrecta')
+            self.to_decimal()
+        if type != "R_no_comercial":
+            if type.lower() == 'c' or type.lower() == 'r':
+               if type.lower() == 'c':
+                  self.normalization_value = self.normalization(self.Component_value)
+                  self.Component_value = self.Component_value * pow(10, self.normalization_value)
             else:
-                if self.multiplier == 'k':
-                    self.Component_value = float(self.Component_stack.listToString()) * 1000
-                elif self.multiplier == 'm':
-                    self.Component_value = float(self.Component_stack.listToString()) * 1000000
-                elif self.multiplier == 'u':
-                    self.Component_value = float(self.Component_stack.listToString()) * 0.000001
-                elif self.multiplier == 'n':
-                    self.Component_value = float(self.Component_stack.listToString()) * 0.000000001
-                else:
-                    self.Component_value = float(self.Component_stack.listToString())
-        if type.lower() == 'c' or type.lower() == 'r':
-           if type.lower() == 'c':
-              self.normalization_value = self.normalization(self.Component_value)
-              self.Component_value = self.Component_value * pow(10, self.normalization_value)
-        else:
-            raise AssertionError('Tipo de componente no valido')
-        self.tmp = self.Component_value
-        self.Component_container = stack()
-        while self.tmp >= 1:
-           self.Component_values = self.heavier_values_Component(self.tmp)
-           self.Component_container.push(self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp)))
-           self.tmp = self.tmp - self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp))
-        if type.lower() == 'c':
-            self.Component_container.normalize(self.normalization_value)
+                raise AssertionError('Tipo de componente no valido')
+            self.tmp = self.Component_value
+            self.Component_container = stack()
+            if type.lower() == 'r':
+                while self.tmp >= 1:
+                        self.Component_values = self.heavier_values_Component(self.tmp)
+                        self.Component_container.push(self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp)))
+                        self.tmp = self.tmp - self.Comercial_comparation(self.Component_values, type)*pow(10,self.get_exp(self.tmp))
+            elif type.lower() == 'c':
+                self.Component_values = self.heavier_values_Component(self.tmp)
+                self.Component_container.push(self.Comercial_comparation(self.Component_values, type) * pow(10, self.get_exp(self.tmp)))
+                self.Component_container.normalize(self.normalization_value)
 
-    def __str__(self):
-            return 'Esta clase recibe capacitores y resistencias'
+    def to_decimal(self):
+        while self.index < len(self.Current_Component) and self.dot_amount < 2 and self.multiplier_amount < 2:
+            self.Component = self.Current_Component[self.index]
+            if self.Component in "1234567890.":
+                if self.Component == '.':
+                    self.dot_amount += 1
+                self.Component_stack.push(self.Component)
+            elif self.Component.lower() in "kmun":
+                self.multiplier = self.Component.lower()
+                self.multiplier_amount += 1
+            else:
+                self.Error_Component_vector = True
+            self.index += 1
+        if self.dot_amount > 1 or self.multiplier_amount > 1 or self.Error_Component_vector == True:
+            self.Component_stack.Empty()
+            self.Error_Component_vector = True
+            raise AssertionError('Cantidad de puntos o de multiplicadores incorrecta')
+        else:
+            if self.multiplier == 'k':
+                self.Component_value = float(self.Component_stack.listToString()) * 1000
+            elif self.multiplier == 'm':
+                self.Component_value = float(self.Component_stack.listToString()) * 1000000
+            elif self.multiplier == 'u':
+                self.Component_value = float(self.Component_stack.listToString()) * 0.000001
+            elif self.multiplier == 'n':
+                self.Component_value = float(self.Component_stack.listToString()) * 0.000000001
+            else:
+                self.Component_value = float(self.Component_stack.listToString())
 
     def normalization(self,C):
         self.exp_normalization = 0
@@ -82,8 +87,10 @@ class Component_manager:
         self.index = 0
         while(C >= self.vector_component[self.index]):
             self.index+=1
-        return self.vector_component[self.index - 1]
-
+        if type.lower() == 'r':
+            return self.vector_component[self.index - 1]
+        elif type.lower() == 'c':
+            return self.vector_component[self.index]
     def get_exp(self, number):
         self.number = number
         self.times = 0

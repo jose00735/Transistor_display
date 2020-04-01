@@ -74,11 +74,11 @@ class Amplifier:
             if self.RL < (0.026 / ic_stable)*hfe*0.7 + hfe*0.7*0.5*RL:
                 if darlington:
                     self.stage.buld_stage_CC(RL, self.RL, self.VCC, self.fc, hfe, darlington)
-                    name = f'{self.models_EC.get_stack()[0]}:{self.models_EC.get_stack()[1]}:Darlington_Current_stage'
+                    name = f'{self.models_CC.get_stack()[0]}:{self.models_CC.get_stack()[1]}:Darlington_Current_stage'
                     self.Parameters_container[name] = self.stage.get_parameters()
                 else:
                     self.stage.buld_stage_CC(RL, self.RL, self.VCC, self.fc, hfe, darlington)
-                    name = f'{self.models_EC.get_stack()[1]}:Current_stage'
+                    name = f'{self.models_CC.get_stack()[0]}:Current_stage'
                     self.Parameters_container[name] = self.stage.get_parameters()
                 return self.Parameters_container
             else:
@@ -89,11 +89,3 @@ class Amplifier:
         else:
             return self.Parameters_container
 
-
-A = Amplifier(10000, 50, 20, 1000)
-model = ['ec:2n3904', 'ec:2n3904', 'cc:tip31c', 'cc:bc547b']
-A_up_power = A.Power_amplifier(model, True)
-Amplifier_parameters = A_up_power(5)
-Component_manager.To_comercial_parameters(Amplifier_parameters)
-for index in Amplifier_parameters:
-    print(Amplifier_parameters[index])

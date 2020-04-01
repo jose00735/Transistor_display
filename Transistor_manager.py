@@ -34,9 +34,9 @@ class TransistorManager:
                     self.specs = self.specs.get_stack()
                     self.tmp = ''
                     # aqui se toman todos los datos de nuestro transistor
-                    for self.index in range(len(self.transistors_content[self.model_location]) - 1):
-                        if self.transistors_content[self.model_location][self.index] != ',':
-                            self.tmp += self.transistors_content[self.model_location][self.index]
+                    for self.index in range(len(self.transistors_content[self.model_location+1]) - 1):
+                        if self.transistors_content[self.model_location+1][self.index] != ',':
+                            self.tmp += self.transistors_content[self.model_location+1][self.index]
                         else:
                             if self.tmp != '':
                                 self.model_specs.push(self.tmp)
@@ -62,7 +62,8 @@ class TransistorManager:
             while self.transistors_content[self.index][self.tmp_index] != ',':
                 self.tmp += self.transistors_content[self.index][self.tmp_index]
                 self.tmp_index += 1
-            self.models_db.push(self.tmp)
+            if self.tmp != 'Modelo':
+                 self.models_db.push(self.tmp)
             self.tmp = ''
             self.tmp_index = 0
         self.models_db = self.models_db.get_stack()
